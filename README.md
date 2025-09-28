@@ -63,12 +63,11 @@ Recurrence:
 
 𝑇(𝑛) = 2𝑇(𝑛/2) + Θ(𝑛)
 
-
 The sorting step adds Θ(n log n) at the start, so overall:
 
 𝑇(𝑛)=Θ(𝑛log⁡𝑛)
 
-Experimental Plots (expected)
+## Experimental Plots (expected)
 
 Time vs n:
 
@@ -80,13 +79,13 @@ Closest Pair: ~n log n.
 
 Depth vs n:
 
-MergeSort and Closest Pair: grows logarithmically.
+1. MergeSort and Closest Pair: grows logarithmically.
 
-QuickSort: log-like, bounded by ~2 log₂ n.
+2. QuickSort: log-like, bounded by ~2 log₂ n.
 
-Select: grows slowly, proportional to log n.
+3. Select: grows slowly, proportional to log n.
 
-Constant factors:
+## Constant factors:
 
 Insertion sort cutoff improves runtime for small subarrays.
 
