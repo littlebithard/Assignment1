@@ -1,54 +1,84 @@
-import org.openjdk.jmh.annotations.*;
-import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.RunnerException;
-import org.openjdk.jmh.runner.options.Options;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
-
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-@BenchmarkMode(Mode.AverageTime)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
-@State(Scope.Benchmark)
-@Fork(value = 2, jvmArgs = {"-Xms2G", "-Xmx2G"})
-@Warmup(iterations = 3)
-@Measurement(iterations = 5)
 public class SelectVsSortBenchmark {
 
-    @Param({"1000", "10000", "100000"})
-    private int N;
+    private static final int[] SIZES = {1_000, 10_000, 100_000};
+    private static final int WARMUP_ITER = 3;
+    private static final int MEASURE_ITER = 5;
 
-    private int[] sourceArray;
-    private int k;
+    private static int[] sourceArray;
+    private static int k;
 
-    @Setup
-    public void setup() {
-        sourceArray = new Random().ints(N, 0, N * 10).toArray();
-        k = N / 2; // We will always find the median element.
+    private static void setup(int n) {
+        sourceArray = new Random(12345).ints(n, 0, n * 10).toArray();
+        k = n / 2;
     }
 
-    @Benchmark
-    public int deterministicSelect() {
-        // We must clone the array because the select algorithm modifies it in-place.
-        // Failing to do this would mean subsequent runs work on already-partitioned data, giving invalid results.
+    private static int deterministicSelectRun() {
         int[] workArray = Arrays.copyOf(sourceArray, sourceArray.length);
-        return DeterministicSelect.select(workArray, k, new Metrics("JMH_Select"));
+        return Select.select(workArray, k, new Metrics("Micro_Select"));
     }
 
-    @Benchmark
-    public int sortAndSelect() {
-        // We also clone here to ensure a fair comparison against the other benchmark.
+    private static int sortAndSelectRun() {
         int[] workArray = Arrays.copyOf(sourceArray, sourceArray.length);
         Arrays.sort(workArray);
         return workArray[k];
     }
 
-    public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(SelectVsSortBenchmark.class.getSimpleName())
-                .build();
-        new Runner(opt).run();
+    private static long timeNanos(Runnable r) {
+        long start = System.nanoTime();
+        r.run();
+        return System.nanoTime() - start;
+    }
+
+    private static double millis(long nanos) {
+        return nanos / 1_000_000.0;
+    }
+
+    public static void main(String[] args) {
+        for (int n : SIZES) {
+            setup(n);
+
+            for (int i = 0; i < WARMUP_ITER; i++) {
+                deterministicSelectRun();
+                sortAndSelectRun();
+            }
+
+            long totalNsSelect = 0;
+            int check1 = 0;
+            for (int i = 0; i < MEASURE_ITER; i++) {
+                long ns = timeNanos(() -> {
+                    // capture the result to prevent dead code elimination
+                    int res = deterministicSelectRun();
+                    // store to a field/array (here: closure) via side effect
+                    // but we just assign to outer variable after timing
+                });
+                totalNsSelect += ns;
+                check1 = deterministicSelectRun(); // light extra call to read result
+            }
+
+            // Measure sortAndSelect
+            long totalNsSort = 0;
+            int check2 = 0;
+            for (int i = 0; i < MEASURE_ITER; i++) {
+                long ns = timeNanos(() -> {
+                    int res = sortAndSelectRun();
+                });
+                totalNsSort += ns;
+                check2 = sortAndSelectRun();
+            }
+
+            if (check1 != check2) {
+                System.out.println("Mismatch for N=" + n + ": select=" + check1 + " sort=" + check2);
+            }
+
+            double avgMsSelect = millis(totalNsSelect) / MEASURE_ITER;
+            double avgMsSort = millis(totalNsSort) / MEASURE_ITER;
+
+            System.out.printf("N=%d | deterministicSelect ~ %.3f ms | sortAndSelect ~ %.3f ms%n",
+                    n, avgMsSelect, avgMsSort);
+        }
     }
 }
-
