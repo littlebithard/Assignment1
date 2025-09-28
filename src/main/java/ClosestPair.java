@@ -61,8 +61,9 @@ public class ClosestPair {
         metrics.enterRecursion();
 
         if (right - left <= 2) {
+            Pair res = bruteForce(pointsByX, left, right, metrics);
             metrics.exitRecursion();
-            return bruteForce(pointsByX, left, right, metrics);
+            return res;
         }
 
         int mid = left + (right - left) / 2;

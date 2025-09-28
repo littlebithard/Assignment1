@@ -32,29 +32,51 @@ public class Select {
         }
     }
 
-    private static int findPivot(int[] array, int left, int right, Metrics metrics) {
-        if (right - left < 5) {
-            return findMedianOfSubarray(array, left, right, metrics);
+    private static int medianOfFiveIndex(int[] a, int l, int r) {
+        int n = r - l + 1;
+        int[] idx = new int[n];
+        for (int t = 0; t < n; t++) idx[t] = l + t;
+        Integer[] boxed = new Integer[n];
+        for (int t = 0; t < n; t++) boxed[t] = idx[t];
+        Arrays.sort(boxed, (i, j) -> Integer.compare(a[i], a[j]));
+        return boxed[n / 2];
+    }
+    
+    private static int findPivot(int[] a, int left, int right, Metrics metrics) {
+        int len = right - left + 1;
+        if (len <= 5) {
+            return medianOfFiveIndex(a, left, right);
         }
-
-        int numGroups = (int) Math.ceil((double) (right - left + 1) / 5);
-        int[] medians = new int[numGroups];
-
-        for (int i = 0; i < numGroups; i++) {
-            int subLeft = left + i * 5;
-            int subRight = Math.min(subLeft + 4, right);
-            int medianIndex = findMedianOfSubarray(array, subLeft, subRight, metrics);
-            medians[i] = array[medianIndex];
+        int groups = (len + 4) / 5;
+        for (int i = 0; i < groups; i++) {
+            int l = left + i * 5;
+            int r = Math.min(l + 4, right);
+            int m = medianOfFiveIndex(a, l, r);
+            swap(a, left + i, m);
         }
+        int mid = left + (groups - 1) / 2;
+        return selectIndexByValue(a, left, left + groups - 1, mid, metrics);
+    }
 
-        int medianOfMedians = select(medians, medians.length / 2, new Metrics("MoM_Internal"));
-
-        for (int i = left; i <= right; i++) {
-            if (array[i] == medianOfMedians) {
-                return i;
+    private static int selectIndexByValue(int[] a, int l, int r, int kIdx, Metrics metrics) {
+        // lightweight Quickselect on indices range
+        int left = l, right = r;
+        while (true) {
+            if (left == right) return left;
+            int pivot = a[(left + right) >>> 1];
+            int i = left, j = right;
+            while (i <= j) {
+                while (a[i] < pivot) { metrics.incrementComparisons(); i++; }
+                while (a[j] > pivot) { metrics.incrementComparisons(); j--; }
+                if (i <= j) {
+                    swap(a, i, j);
+                    i++; j--;
+                }
             }
+            if (kIdx <= j) right = j;
+            else if (kIdx >= i) left = i;
+            else return kIdx;
         }
-        return -1; // Should not happen
     }
 
     private static int findMedianOfSubarray(int[] array, int left, int right, Metrics metrics) {

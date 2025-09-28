@@ -16,11 +16,11 @@ public class QuickSort {
             metrics.enterRecursion();
             int pivotIndex = partition(array, left, right, metrics);
 
-            if (pivotIndex - left < right - pivotIndex) {
-                quicksort(array, left, pivotIndex - 1, metrics);
+            if ((pivotIndex - left) < (right - pivotIndex)) {
+                if (pivotIndex - 1 > left) quicksort(array, left, pivotIndex - 1, metrics);
                 left = pivotIndex + 1;
             } else {
-                quicksort(array, pivotIndex + 1, right, metrics);
+                if (pivotIndex + 1 < right) quicksort(array, pivotIndex + 1, right, metrics);
                 right = pivotIndex - 1;
             }
             metrics.exitRecursion();
