@@ -28,44 +28,36 @@ Metrics (time, recursion depth, comparisons) are collected using a lightweight M
 ### MergeSort
 
 Recurrence:
-
-<center>𝑇(𝑛) = 2𝑇(𝑛/2) + Θ(𝑛)T(n)
+𝑇(𝑛) = 2𝑇(𝑛/2) + Θ(𝑛)T(n)
 
 By the Master Theorem, Case 2:
-
-<center>𝑇(𝑛) = Θ(𝑛log𝑛)
+𝑇(𝑛) = Θ(𝑛log𝑛)
 
 ## QuickSort (randomized pivot, smaller-first recursion)
 
 Expected recurrence:
-
-<center>𝑇(𝑛) = 𝑇(smaller part) + 𝑇(larger part) + Θ(𝑛)
+𝑇(𝑛) = 𝑇(smaller part) + 𝑇(larger part) + Θ(𝑛)
 
 Expected balanced splits → average case:
-
-<center>𝑇(𝑛) = Θ(𝑛log⁡𝑛)
+𝑇(𝑛) = Θ(𝑛log⁡𝑛)
 
 Depth bounded by O(log n) (tail recursion optimization ensures stack ≲ 2⌊log₂ n⌋).
 
 ## Deterministic Select (Median-of-Medians)
 
 Recurrence:
+𝑇(𝑛) = 𝑇(𝑛/5) + 𝑇(7𝑛/10) + Θ(𝑛)
 
-<center>𝑇(𝑛) = 𝑇(𝑛/5) + 𝑇(7𝑛/10) + Θ(𝑛)
-
-By Akra–Bazzi method:
-
-<center>𝑇(𝑛) = Θ(𝑛)
+<br>By Akra–Bazzi method:
+𝑇(𝑛) = Θ(𝑛)
 
 ## Closest Pair of Points (2D)
 
 Recurrence:
-
-<center>𝑇(𝑛) = 2𝑇(𝑛/2) + Θ(𝑛)
+𝑇(𝑛) = 2𝑇(𝑛/2) + Θ(𝑛)
 
 The sorting step adds Θ(n log n) at the start, so overall:
-
-<center>𝑇(𝑛)=Θ(𝑛log⁡𝑛)
+𝑇(𝑛) = Θ(𝑛log⁡𝑛)
 
 ## Experimental Plots (expected)
 
